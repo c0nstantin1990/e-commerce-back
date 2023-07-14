@@ -82,4 +82,46 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
+// Helper functions
+
+async function getCategoryById(id) {
+  return await Category.findOne({
+    where: {
+      id: id,
+    },
+    attributes: ['category_name', 'id'],
+    include: [
+      {
+        model: Product,
+        attributes: ['id', 'product_name', 'price'],
+      },
+    ],
+  });
+}
+
+async function createCategory(categoryName) {
+  return await Category.create({
+    category_name: categoryName,
+  });
+}
+
+async function updateCategory(id, categoryName) {
+  return await Category.update(
+    { category_name: categoryName },
+    {
+      where: {
+        id: id,
+      },
+    }
+  );
+}
+
+async function deleteCategory(id) {
+  return await Category.destroy({
+    where: {
+      id: id,
+    },
+  });
+}
+
 module.exports = router;
