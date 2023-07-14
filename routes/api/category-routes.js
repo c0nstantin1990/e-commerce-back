@@ -38,8 +38,15 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-router.post("/", (req, res) => {
-  // create a new category
+// CREATE a new category
+router.post("/", async (req, res) => {
+  try {
+    const category = await createCategory(req.body.category_name);
+    res.status(201).json(category);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json(err);
+  }
 });
 
 router.put("/:id", (req, res) => {
