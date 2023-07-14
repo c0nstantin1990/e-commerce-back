@@ -14,9 +14,19 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.get("/:id", (req, res) => {
-  // find a single tag by its `id`
-  // be sure to include its associated Product data
+// GET one tag by id
+router.get("/:id", async (req, res) => {
+  try {
+    const tag = await getTagById(req.params.id);
+    if (!tag) {
+      res.status(404).json({ message: "No tag found with this id" });
+      return;
+    }
+    res.json(tag);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json(err);
+  }
 });
 
 router.post("/", (req, res) => {
@@ -35,11 +45,25 @@ router.delete("/:id", (req, res) => {
 
 async function getAllTags() {
   return await Tag.findAll({
-    attributes: ['id', 'tag_name'],
+    attributes: ["id", "tag_name"],
     include: [
       {
         model: Product,
-        attributes: ['id', 'product_name'],
+        attributes: ["id", "product_name"],
+      },
+    ],
+  });
+}
+
+async function getTagById(id) {
+  return await Tag.findOne({
+    where: {
+      id: id,
+    },
+    include: [
+      {
+        model: Product,
+        attributes: ["product_name", "price", "stock"],
       },
     ],
   });
