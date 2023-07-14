@@ -40,8 +40,19 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.put("/:id", (req, res) => {
-  // update a tag's name by its `id` value
+// UPDATE a tag by id
+router.put("/:id", async (req, res) => {
+  try {
+    const updatedTag = await updateTag(req.params.id, req.body.tag_name);
+    if (!updatedTag) {
+      res.status(404).json({ message: "No tag found with this id" });
+      return;
+    }
+    res.sendStatus(200);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json(err);
+  }
 });
 
 router.delete("/:id", (req, res) => {
@@ -80,6 +91,19 @@ async function createTag(tagName) {
   return await Tag.create({
     tag_name: tagName,
   });
+}
+
+async function updateTag(id, tagName) {
+  return await Tag.update(
+    {
+      tag_name: tagName,
+    },
+    {
+      where: {
+        id: id,
+      },
+    }
+  );
 }
 
 module.exports = router;
