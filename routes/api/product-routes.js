@@ -80,48 +80,33 @@ router.post("/", async (req, res) => {
   }
 });
 
-// update product
-router.put("/:id", (req, res) => {
-  // update product data
-  Product.update(req.body, {
-    where: {
-      id: req.params.id,
-    },
-  })
-    .then((product) => {
-      if (req.body.tagIds && req.body.tagIds.length) {
-        ProductTag.findAll({
-          where: { product_id: req.params.id },
-        }).then((productTags) => {
-          // create filtered list of new tag_ids
-          const productTagIds = productTags.map(({ tag_id }) => tag_id);
-          const newProductTags = req.body.tagIds
-            .filter((tag_id) => !productTagIds.includes(tag_id))
-            .map((tag_id) => {
-              return {
-                product_id: req.params.id,
-                tag_id,
-              };
-            });
-
-          // figure out which ones to remove
-          const productTagsToRemove = productTags
-            .filter(({ tag_id }) => !req.body.tagIds.includes(tag_id))
-            .map(({ id }) => id);
-          // run both actions
-          return Promise.all([
-            ProductTag.destroy({ where: { id: productTagsToRemove } }),
-            ProductTag.bulkCreate(newProductTags),
-          ]);
-        });
-      }
-
-      return res.json(product);
-    })
-    .catch((err) => {
-      // console.log(err);
-      res.status(400).json(err);
+// UPDATE a product by id
+router.put('/:id', async (req, res) => {
+  try {
+    await Product.update(req.body, {
+      where: { id: req.params.id },
     });
+
+    if (req.body.tagIds && req.body.tagIds.length) {
+      const existingTags = await ProductTag.findAll({ where: { product_id: req.params.id } });
+      const existingTagIds = existingTags.map(({ tag_id }) => tag_id);
+      const newTags = req.body.tagIds.filter((tagId) => !existingTagIds.includes(tagId));
+
+      const productTagsToRemove = existingTags
+        .filter(({ tag_id }) => !req.body.tagIds.includes(tag_id))
+        .map(({ id }) => id);
+
+      await Promise.all([
+        ProductTag.destroy({ where: { id: productTagsToRemove } }),
+        ProductTag.bulkCreate(newTags.map((tagId) => ({ product_id: req.params.id, tag_id: tagId }))),
+      ]);
+    }
+
+    res.sendStatus(200);
+  } catch (err) {
+    console.error(err);
+    res.status(400).json(err);
+  }
 });
 
 router.delete("/:id", (req, res) => {
