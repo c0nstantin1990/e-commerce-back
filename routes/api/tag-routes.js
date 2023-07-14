@@ -29,8 +29,15 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-router.post("/", (req, res) => {
-  // create a new tag
+// CREATE a new tag
+router.post("/", async (req, res) => {
+  try {
+    const tag = await createTag(req.body.tag_name);
+    res.status(201).json(tag);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json(err);
+  }
 });
 
 router.put("/:id", (req, res) => {
@@ -66,6 +73,12 @@ async function getTagById(id) {
         attributes: ["product_name", "price", "stock"],
       },
     ],
+  });
+}
+
+async function createTag(tagName) {
+  return await Tag.create({
+    tag_name: tagName,
   });
 }
 
