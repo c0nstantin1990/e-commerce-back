@@ -23,9 +23,19 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.get("/:id", (req, res) => {
-  // find one category by its `id` value
-  // be sure to include its associated Products
+// GET one category by id
+router.get("/:id", async (req, res) => {
+  try {
+    const category = await getCategoryById(req.params.id);
+    if (!category) {
+      res.status(404).json({ message: "No category found with this id" });
+      return;
+    }
+    res.json(category);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json(err);
+  }
 });
 
 router.post("/", (req, res) => {
