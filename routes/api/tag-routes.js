@@ -55,8 +55,19 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-router.delete("/:id", (req, res) => {
-  // delete on tag by its `id` value
+// DELETE a tag by id
+router.delete("/:id", async (req, res) => {
+  try {
+    const deletedTag = await deleteTag(req.params.id);
+    if (!deletedTag) {
+      res.status(404).json({ message: "No tag found with this id" });
+      return;
+    }
+    res.sendStatus(204);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json(err);
+  }
 });
 
 // Helper functions
@@ -104,6 +115,14 @@ async function updateTag(id, tagName) {
       },
     }
   );
+}
+
+async function deleteTag(id) {
+  return await Tag.destroy({
+    where: {
+      id: id,
+    },
+  });
 }
 
 module.exports = router;
