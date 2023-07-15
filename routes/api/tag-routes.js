@@ -1,128 +1,73 @@
 const router = require("express").Router();
 const { Tag, Product, ProductTag } = require("../../models");
 
-// The `/api/tags` endpoint
-
-// GET all tags
+// GET all tags with associated product data
 router.get("/", async (req, res) => {
   try {
-    const tags = await getAllTags();
+    const tags = await Tag.findAll({ include: [Product] });
     res.json(tags);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json(err);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
-// GET one tag by id
+// GET a tag by its ID with associated product data
 router.get("/:id", async (req, res) => {
   try {
-    const tag = await getTagById(req.params.id);
+    const tag = await Tag.findByPk(req.params.id, { include: [Product] });
     if (!tag) {
-      res.status(404).json({ message: "No tag found with this id" });
+      res.status(404).json({ message: "No tag found with this id." });
       return;
     }
     res.json(tag);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json(err);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
 // CREATE a new tag
 router.post("/", async (req, res) => {
   try {
-    const tag = await createTag(req.body.tag_name);
+    const tag = await Tag.create(req.body);
     res.status(201).json(tag);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json(err);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
-// UPDATE a tag by id
+// UPDATE a tag by its ID
 router.put("/:id", async (req, res) => {
   try {
-    const updatedTag = await updateTag(req.params.id, req.body.tag_name);
-    if (!updatedTag) {
-      res.status(404).json({ message: "No tag found with this id" });
+    const [updatedRows] = await Tag.update(req.body, {
+      where: { id: req.params.id },
+    });
+    if (updatedRows === 0) {
+      res.status(404).json({ message: "No tag found with this id." });
       return;
     }
-    res.sendStatus(200);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json(err);
+    res.json({ message: "Tag updated successfully." });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
-// DELETE a tag by id
+// DELETE a tag by its ID
 router.delete("/:id", async (req, res) => {
   try {
-    const deletedTag = await deleteTag(req.params.id);
-    if (!deletedTag) {
-      res.status(404).json({ message: "No tag found with this id" });
+    const deletedRows = await Tag.destroy({ where: { id: req.params.id } });
+    if (deletedRows === 0) {
+      res.status(404).json({ message: "No tag found with this id." });
       return;
     }
-    res.sendStatus(204);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json(err);
+    res.json({ message: "Tag deleted successfully." });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
-
-// Helper functions
-
-async function getAllTags() {
-  return await Tag.findAll({
-    attributes: ["id", "tag_name"],
-    include: [
-      {
-        model: Product,
-        attributes: ["id", "product_name"],
-      },
-    ],
-  });
-}
-
-async function getTagById(id) {
-  return await Tag.findOne({
-    where: {
-      id: id,
-    },
-    include: [
-      {
-        model: Product,
-        attributes: ["product_name", "price", "stock"],
-      },
-    ],
-  });
-}
-
-async function createTag(tagName) {
-  return await Tag.create({
-    tag_name: tagName,
-  });
-}
-
-async function updateTag(id, tagName) {
-  return await Tag.update(
-    {
-      tag_name: tagName,
-    },
-    {
-      where: {
-        id: id,
-      },
-    }
-  );
-}
-
-async function deleteTag(id) {
-  return await Tag.destroy({
-    where: {
-      id: id,
-    },
-  });
-}
 
 module.exports = router;

@@ -1,127 +1,77 @@
 const router = require("express").Router();
 const { Category, Product } = require("../../models");
 
-// The `/api/categories` endpoint
-
-// GET all categories
+// GET all categories with associated products
 router.get("/", async (req, res) => {
   try {
-    const categories = await Category.findAll({
-      attributes: ["id", "category_name"],
-      include: [
-        {
-          model: Product,
-          attributes: ["id", "product_name", "price"],
-        },
-      ],
-    });
-
+    const categories = await Category.findAll({ include: [Product] });
     res.json(categories);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json(err);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
-// GET one category by id
+// GET a category by its ID with associated products
 router.get("/:id", async (req, res) => {
   try {
-    const category = await getCategoryById(req.params.id);
+    const category = await Category.findByPk(req.params.id, {
+      include: [Product],
+    });
     if (!category) {
-      res.status(404).json({ message: "No category found with this id" });
+      res.status(404).json({ message: "No category found with this id." });
       return;
     }
     res.json(category);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json(err);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
 // CREATE a new category
 router.post("/", async (req, res) => {
   try {
-    const category = await createCategory(req.body.category_name);
+    const category = await Category.create(req.body);
     res.status(201).json(category);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json(err);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
-// UPDATE a category by id
+// UPDATE a category by its ID
 router.put("/:id", async (req, res) => {
   try {
-    const updatedCategory = await updateCategory(
-      req.params.id,
-      req.body.category_name
-    );
-    if (!updatedCategory) {
-      res.status(404).json({ message: "No category found with this id" });
+    const [updatedRows] = await Category.update(req.body, {
+      where: { id: req.params.id },
+    });
+    if (updatedRows === 0) {
+      res.status(404).json({ message: "No category found with this id." });
       return;
     }
-    res.sendStatus(200);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json(err);
+    res.json({ message: "Category updated successfully." });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
-// DELETE a category by id
+// DELETE a category by its ID
 router.delete("/:id", async (req, res) => {
   try {
-    const deletedCategory = await deleteCategory(req.params.id);
-    if (!deletedCategory) {
-      res.status(404).json({ message: "No category found with this id" });
+    const deletedRows = await Category.destroy({
+      where: { id: req.params.id },
+    });
+    if (deletedRows === 0) {
+      res.status(404).json({ message: "No category found with this id." });
       return;
     }
-    res.sendStatus(204);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json(err);
+    res.json({ message: "Category deleted successfully." });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
-
-// Helper functions
-
-async function getCategoryById(id) {
-  return await Category.findOne({
-    where: {
-      id: id,
-    },
-    attributes: ['category_name', 'id'],
-    include: [
-      {
-        model: Product,
-        attributes: ['id', 'product_name', 'price'],
-      },
-    ],
-  });
-}
-
-async function createCategory(categoryName) {
-  return await Category.create({
-    category_name: categoryName,
-  });
-}
-
-async function updateCategory(id, categoryName) {
-  return await Category.update(
-    { category_name: categoryName },
-    {
-      where: {
-        id: id,
-      },
-    }
-  );
-}
-
-async function deleteCategory(id) {
-  return await Category.destroy({
-    where: {
-      id: id,
-    },
-  });
-}
 
 module.exports = router;
