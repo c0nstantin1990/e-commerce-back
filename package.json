@@ -16,6 +16,9 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
   "bugs": {
     "url": "https://github.com/c0nstantin1990/e-commerce-back/issues"
   },
@@ -24,7 +27,6 @@
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "mysql2": "^3.5.1",
-    "nodemon": "^3.0.1",
     "sequelize": "^6.32.1"
   }
 }

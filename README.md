@@ -31,7 +31,7 @@ GitHub Repo: https://github.com/c0nstantin1990/e-commerce-back
 
 ## Video_Demo
 
-Walkthrough Video:
+Walkthrough Video: https://drive.google.com/file/d/1iFCmEENKNNo1ZWYKb4p6CXqt0WtMFsVo/view
 
 ## Features
 
