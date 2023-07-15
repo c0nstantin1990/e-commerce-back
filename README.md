@@ -35,7 +35,7 @@ Walkthrough Video: https://drive.google.com/file/d/1iFCmEENKNNo1ZWYKb4p6CXqt0WtM
 
 ## Features
 
-- Retrieve
-- Create
-- Update
-- Delete
+- Retrieve Data
+- Create Data
+- Update Data
+- Delete Data
